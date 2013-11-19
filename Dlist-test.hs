@@ -16,6 +16,9 @@ main = force `seq` snocList `seq` defaultMain
   , bench "dlist 100000"    $ whnf (dlistRep 100000  ) def10
   , bench "dlist 10000000"  $ whnf (dlistRep 1000000 ) [1]
   , bench "dlist snocList"  $ whnf (length . toList)   snocList
+  , bench "list consList"   $ whnf length consList
+  , bench "dlist head 10000000"  $ whnf (dlistRep' 1000000 ) [1]
+  , bench "dlist head snocList"  $ whnf (head . toList)   snocList
   ]
   where
     force = sum $ map length [defData, def100k, def1k, def10]
@@ -25,6 +28,7 @@ def100k = [1..100000 :: Int]
 def1k   = [1..1000   :: Int]
 def10   = [1..10     :: Int]
 snocList  = foldl DL.snoc DL.empty defData
+consList  = foldl (flip (:)) [] defData
 
 baselineList :: [a] -> Int
 baselineList = length
@@ -32,5 +36,8 @@ baselineList = length
 dlistrtrip :: [a] -> Int
 dlistrtrip = length . toList . fromList
 
+dlistRep' :: Int -> [a] -> [a]
+dlistRep' n xs = toList $ DL.concat $ replicate n (fromList xs)
+
 dlistRep :: Int -> [a] -> Int
-dlistRep n xs = length . toList $ DL.concat $ replicate n (fromList xs)
+dlistRep n xs = length $ dlistRep' n xs
